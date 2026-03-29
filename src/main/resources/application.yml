@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: multi-agent
+  profiles:
+    active: local,llm
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: info
+    com.qsh.multiagent: debug
+
+multi-agent:
+  task:
+    max-rounds: 3
+    timeout-seconds: 600
+  message:
+    mode: local

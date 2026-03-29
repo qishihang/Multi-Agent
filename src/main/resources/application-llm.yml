@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: llm
+
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: demo
+      base-url: http://langchain4j.dev/demo/openai/v1
+      model-name: gpt-4o-mini
+      log-requests: true
+      log-responses: true
+
+  community:
+    dashscope:
+      chat-model:
+        api-key: ${DASHSCOPE_API_KEY:}
+        model-name: qwen1.5-110b-chat

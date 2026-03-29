@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Build output
+target/
+out/
+build/
+
+# Maven wrapper temp/logs
+.mvn/timing.properties
+
+# Runtime files
+logs/
+*.log
+workspace/
+
+# Environment and secrets
+.env
+.env.*
+*.local
+
+# OS / temp
+tmp/
+temp/
+*.tmp

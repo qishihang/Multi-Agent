@@ -1,6 +1,7 @@
 package com.qsh.multiagent.orchestration.workflow;
 import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.domain.plan.Plan;
+import com.qsh.multiagent.domain.report.model.AggregatedResult;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.task.TaskStatus;
 import com.qsh.multiagent.domain.workflow.TaskDecision;
@@ -8,8 +9,6 @@ import com.qsh.multiagent.orchestration.aggregator.Aggregator;
 import com.qsh.multiagent.orchestration.dispatcher.Dispatcher;
 import com.qsh.multiagent.orchestration.planner.Planner;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
             task.setCurrentPlanId(plan.getId());
 
             task.setStatus(TaskStatus.CODING);
-            AgentResult coderResult = dispatcher.dispatchToCoder(task, plan);
+            AgentResult<?> coderResult = dispatcher.dispatchToCoder(task, plan);
             if (!coderResult.isSuccess()) {
                 task.setStatus(TaskStatus.FAILED);
                 task.setFinalSummary(coderResult.getErrorMessage());
@@ -45,22 +44,22 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
             }
 
             task.setStatus(TaskStatus.REVIEWING);
-            List<AgentResult> verifyResults = dispatcher.dispatchToReviewAndTest(task, plan);
+            List<AgentResult<?>> verifyResults = dispatcher.dispatchToReviewAndTest(task, plan);
 
             task.setStatus(TaskStatus.AGGREGATING);
-            String aggregatedSummary = aggregator.aggregate(verifyResults);
+            AggregatedResult aggregatedResult = aggregator.aggregate(verifyResults);
 
-            TaskDecision decision = planner.decide(task, aggregatedSummary);
+            TaskDecision decision = planner.decide(task, aggregatedResult);
 
             if (decision == TaskDecision.FINISH) {
                 task.setStatus(TaskStatus.COMPLETED);
-                task.setFinalSummary(aggregatedSummary);
+                task.setFinalSummary(aggregatedResult.getSummary());
                 return task;
             }
 
             if (decision == TaskDecision.TERMINATE) {
                 task.setStatus(TaskStatus.FAILED);
-                task.setFinalSummary(aggregatedSummary);
+                task.setFinalSummary(aggregatedResult.getSummary());
                 return task;
             }
 

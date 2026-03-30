@@ -1,5 +1,8 @@
 package com.qsh.multiagent.orchestration;
 
+import com.qsh.multiagent.api.request.CreateTaskRequest;
+import com.qsh.multiagent.api.response.TaskResponse;
+import com.qsh.multiagent.application.service.TaskApplicationService;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.task.TaskStatus;
 import com.qsh.multiagent.orchestration.workflow.WorkflowEngine;
@@ -29,5 +32,22 @@ public class WorkflowSpringBootTest {
         Assertions.assertEquals(TaskStatus.COMPLETED, result.getStatus());
         Assertions.assertNotNull(result.getCurrentPlanId());
         Assertions.assertNotNull(result.getFinalSummary());
+    }
+
+    @Autowired
+    private TaskApplicationService taskApplicationService;
+    @Test
+    void should_create_and_run_task() {
+        CreateTaskRequest request = new CreateTaskRequest();
+        request.setGoal("Run task via application service");
+        request.setMaxRounds(3);
+
+        TaskResponse response = taskApplicationService.createAndRunTask(request);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertNotNull(response.getTaskId());
+        Assertions.assertEquals(TaskStatus.COMPLETED, response.getStatus());
+        Assertions.assertNotNull(response.getCurrentPlanId());
+        Assertions.assertNotNull(response.getFinalSummary());
     }
 }

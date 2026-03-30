@@ -1,11 +1,14 @@
 package com.qsh.multiagent.infrastructure.llm.service;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
 import dev.langchain4j.service.spring.AiServiceWiringMode;
 
-@AiService(wiringMode = AiServiceWiringMode.EXPLICIT, chatModel = "qwenChatModel")
+@AiService(wiringMode = AiServiceWiringMode.EXPLICIT,
+           chatModel = "qwenChatModel",
+           chatMemoryProvider = "plannerChatMemoryProvider")
 public interface PlannerAiService {
 
     @SystemMessage("""
@@ -23,5 +26,5 @@ public interface PlannerAiService {
             - Each step must be concrete
             - Mark codingRequired as true only when code changes are needed
             """)
-    PlannerPlanOutput createPlan(@UserMessage String userMessage);
+    PlannerPlanOutput createPlan(@MemoryId String taskId, @UserMessage String userMessage);
 }

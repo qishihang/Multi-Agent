@@ -29,4 +29,21 @@ public class PlannerIntegrationTest {
         Assertions.assertNotNull(plan.getDoneCriteria());
         Assertions.assertTrue(plan.hasSteps());
     }
+
+    @Test
+    void should_create_plan_with_task_memory() {
+        Task task = new Task();
+        task.setId("task-memory-001");
+        task.setGoal("Create a login module plan");
+        task.setCurrentRound(1);
+        task.setMaxRounds(3);
+
+        Plan firstPlan = planner.createPlan(task);
+        Plan secondPlan = planner.createPlan(task);
+
+        Assertions.assertNotNull(firstPlan);
+        Assertions.assertNotNull(secondPlan);
+        Assertions.assertTrue(firstPlan.hasSteps());
+        Assertions.assertTrue(secondPlan.hasSteps());
+    }
 }

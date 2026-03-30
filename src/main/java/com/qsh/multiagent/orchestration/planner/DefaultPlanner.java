@@ -24,7 +24,7 @@ public class DefaultPlanner implements Planner{
     @Override
     public Plan createPlan(Task task) {
         String prompt = buildPlanningPrompt(task);
-        PlannerPlanOutput output = plannerAiService.createPlan(prompt);
+        PlannerPlanOutput output = plannerAiService.createPlan(task.getId(), prompt);
 
         Plan plan = new Plan();
         plan.setId("plan-" + task.getId() + "-" + task.getCurrentRound());

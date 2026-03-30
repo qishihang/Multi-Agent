@@ -20,21 +20,23 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
 
     @Override
     public Task run(Task task) {
+        // 循环执行任务
         while(!task.isFinished()){
+            // 检测任务是否可以继续
             if(!task.canContinue() && task.getCurrentRound() != null){
                 task.setStatus(TaskStatus.MAX_ROUND_REACHED);
                 task.setFinalSummary("Task terminated because max rounds were reached.");
                 return task;
             }
-
+            // 进入下一轮
             if(task.getCurrentRound() == null){
                 task.nextRound();
             }
-
+            // 设置状态，制定计划
             task.setStatus(TaskStatus.PLANNING);
             Plan plan = planner.createPlan(task);
             task.setCurrentPlanId(plan.getId());
-
+            // 设置状态，进行编码
             task.setStatus(TaskStatus.CODING);
             AgentResult<?> coderResult = dispatcher.dispatchToCoder(task, plan);
             if (!coderResult.isSuccess()) {
@@ -42,13 +44,13 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
                 task.setFinalSummary(coderResult.getErrorMessage());
                 return task;
             }
-
+            // 设置状态并测试
             task.setStatus(TaskStatus.REVIEWING);
             List<AgentResult<?>> verifyResults = dispatcher.dispatchToReviewAndTest(task, plan);
-
+            // 汇总
             task.setStatus(TaskStatus.AGGREGATING);
             AggregatedResult aggregatedResult = aggregator.aggregate(verifyResults);
-
+            // 决定是否继续
             TaskDecision decision = planner.decide(task, aggregatedResult);
 
             if (decision == TaskDecision.FINISH) {

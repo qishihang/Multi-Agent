@@ -16,4 +16,4 @@ langchain4j:
     dashscope:
       chat-model:
         api-key: ${DASHSCOPE_API_KEY:}
-        model-name: qwen1.5-110b-chat
+        model-name: qwen-plus-2025-07-28

@@ -11,11 +11,13 @@ import com.qsh.multiagent.agent.tester.unit.MockUnitTestAgent;
 import com.qsh.multiagent.domain.plan.Plan;
 import com.qsh.multiagent.domain.task.Task;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
+@Component
 public class LocalDispatcher implements Dispatcher{
 
     private final MockCoderAgent coderAgent;

@@ -5,7 +5,9 @@ import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
 import com.qsh.multiagent.domain.report.model.UnitTestReport;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MockUnitTestAgent implements Agent {
 
     @Override

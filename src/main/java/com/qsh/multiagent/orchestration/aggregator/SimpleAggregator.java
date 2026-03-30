@@ -2,9 +2,11 @@ package com.qsh.multiagent.orchestration.aggregator;
 
 import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.domain.report.model.AggregatedResult;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class SimpleAggregator implements Aggregator{
 
     @Override

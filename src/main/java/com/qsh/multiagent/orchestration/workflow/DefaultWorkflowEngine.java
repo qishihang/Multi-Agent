@@ -9,10 +9,12 @@ import com.qsh.multiagent.orchestration.aggregator.Aggregator;
 import com.qsh.multiagent.orchestration.dispatcher.Dispatcher;
 import com.qsh.multiagent.orchestration.planner.Planner;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @AllArgsConstructor
+@Component
 public class DefaultWorkflowEngine implements WorkflowEngine{
     private final Planner planner;
     private final Dispatcher dispatcher;

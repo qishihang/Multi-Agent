@@ -9,7 +9,7 @@
 # Build output
 target/
 out/
-build/
+/build/
 
 # Maven wrapper temp/logs
 .mvn/timing.properties
@@ -17,7 +17,7 @@ build/
 # Runtime files
 logs/
 *.log
-workspace/
+/workspace/
 
 # Environment and secrets
 .env

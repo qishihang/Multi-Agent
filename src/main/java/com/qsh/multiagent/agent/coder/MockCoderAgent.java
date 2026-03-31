@@ -6,7 +6,7 @@ import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class MockCoderAgent implements Agent {
 
     @Override

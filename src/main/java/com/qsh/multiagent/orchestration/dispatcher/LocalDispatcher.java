@@ -1,5 +1,6 @@
 package com.qsh.multiagent.orchestration.dispatcher;
 
+import com.qsh.multiagent.agent.coder.DefaultCoderAgent;
 import com.qsh.multiagent.agent.coder.MockCoderAgent;
 import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.agent.common.AgentTask;
@@ -21,7 +22,7 @@ import java.util.List;
 @Component
 public class LocalDispatcher implements Dispatcher{
 
-    private final MockCoderAgent coderAgent;
+    private final DefaultCoderAgent coderAgent;
     private final DefaultReviewerAgent reviewerAgent;
     private final MockBuildAgent buildAgent;
     private final MockUnitTestAgent unitTestAgent;

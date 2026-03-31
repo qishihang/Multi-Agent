@@ -1,5 +1,7 @@
 package com.qsh.multiagent.agent.common;
 
+import com.qsh.multiagent.domain.plan.Plan;
+import com.qsh.multiagent.domain.task.Task;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +16,7 @@ public class AgentTask {
     private AgentType targetAgentType;
     private String objective;
     private String input;
+
+    private Task task;
+    private Plan plan;
 }

@@ -4,6 +4,7 @@ import com.qsh.multiagent.agent.coder.MockCoderAgent;
 import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
+import com.qsh.multiagent.agent.reviewer.DefaultReviewerAgent;
 import com.qsh.multiagent.agent.reviewer.MockReviewerAgent;
 import com.qsh.multiagent.agent.tester.build.MockBuildAgent;
 import com.qsh.multiagent.agent.tester.lint.MockLintAgent;
@@ -21,7 +22,7 @@ import java.util.List;
 public class LocalDispatcher implements Dispatcher{
 
     private final MockCoderAgent coderAgent;
-    private final MockReviewerAgent reviewerAgent;
+    private final DefaultReviewerAgent reviewerAgent;
     private final MockBuildAgent buildAgent;
     private final MockUnitTestAgent unitTestAgent;
     private final MockLintAgent lintAgent;
@@ -34,7 +35,9 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getRound(),
                 AgentType.CODER,
                 plan.getObjective(),
-                "Mock coding input"
+                "Mock coding input",
+                task,
+                plan
         );
         return coderAgent.execute(agentTask);
     }
@@ -49,7 +52,9 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getRound(),
                 AgentType.REVIEWER,
                 plan.getObjective(),
-                "Mock review input"
+                "Mock review input",
+                task,
+                plan
         );
 
         AgentTask buildTask = new AgentTask(
@@ -58,7 +63,9 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getRound(),
                 AgentType.BUILD_TESTER,
                 plan.getObjective(),
-                "Mock build input"
+                "Mock build input",
+                task,
+                plan
         );
 
         AgentTask unitTask = new AgentTask(
@@ -67,7 +74,9 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getRound(),
                 AgentType.UNIT_TESTER,
                 plan.getObjective(),
-                "Mock unit test input"
+                "Mock unit test input",
+                task,
+                plan
         );
 
         AgentTask lintTask = new AgentTask(
@@ -76,7 +85,9 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getRound(),
                 AgentType.LINT_TESTER,
                 plan.getObjective(),
-                "Mock lint input"
+                "Mock lint input",
+                task,
+                plan
         );
 
         results.add(reviewerAgent.execute(reviewerTask));

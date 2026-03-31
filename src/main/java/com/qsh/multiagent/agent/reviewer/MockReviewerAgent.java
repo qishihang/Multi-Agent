@@ -7,7 +7,7 @@ import com.qsh.multiagent.agent.common.AgentType;
 import com.qsh.multiagent.domain.report.model.ReviewReport;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class MockReviewerAgent implements Agent {
 
     @Override

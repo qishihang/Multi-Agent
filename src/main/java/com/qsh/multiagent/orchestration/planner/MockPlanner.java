@@ -7,7 +7,7 @@ import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.workflow.TaskDecision;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class MockPlanner implements Planner{
     @Override
     public Plan createPlan(Task task) {

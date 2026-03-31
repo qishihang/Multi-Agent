@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 
+// 领域对象
 public class ReviewReport {
     private boolean passed;// 是否通过
     private Integer issueCount;// 问题数量

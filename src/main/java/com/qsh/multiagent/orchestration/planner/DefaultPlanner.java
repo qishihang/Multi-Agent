@@ -5,9 +5,11 @@ import com.qsh.multiagent.domain.plan.PlanStep;
 import com.qsh.multiagent.domain.report.model.AggregatedResult;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.workflow.TaskDecision;
+import com.qsh.multiagent.infrastructure.llm.prompt.PlannerPromptBuilder;
 import com.qsh.multiagent.infrastructure.llm.service.PlannerAiService;
 import com.qsh.multiagent.infrastructure.llm.service.PlannerPlanOutput;
 import com.qsh.multiagent.infrastructure.llm.service.PlannerPlanStepOutput;
+import com.qsh.multiagent.infrastructure.skill.registry.SkillLoader;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -15,15 +17,25 @@ import org.springframework.stereotype.Component;
 @Primary
 public class DefaultPlanner implements Planner{
 
-    private final PlannerAiService plannerAiService;
+    private static final String PLANNER_SKILL_PATH = "skills/planner-skill.md";
 
-    public DefaultPlanner(PlannerAiService plannerAiService) {
+    private final PlannerAiService plannerAiService;
+    private final PlannerPromptBuilder plannerPromptBuilder;
+    private final SkillLoader skillLoader;
+
+
+    public DefaultPlanner(PlannerAiService plannerAiService,
+                          PlannerPromptBuilder plannerPromptBuilder,
+                          SkillLoader skillLoader) {
         this.plannerAiService = plannerAiService;
+        this.plannerPromptBuilder = plannerPromptBuilder;
+        this.skillLoader = skillLoader;
     }
 
     @Override
     public Plan createPlan(Task task) {
-        String prompt = buildPlanningPrompt(task);
+        String skillContent = skillLoader.loadSkill(PLANNER_SKILL_PATH);
+        String prompt = plannerPromptBuilder.buildUserPrompt(task, skillContent);
         PlannerPlanOutput output = plannerAiService.createPlan(task.getId(), prompt);
 
         Plan plan = new Plan();
@@ -58,15 +70,5 @@ public class DefaultPlanner implements Planner{
         }
 
         return TaskDecision.CONTINUE;
-    }
-
-    private String buildPlanningPrompt(Task task) {
-        return """
-                Task ID: %s
-                Current Round: %s
-                Task Goal: %s
-
-                Create a short execution plan for this round.
-                """.formatted(task.getId(), task.getCurrentRound(), task.getGoal());
     }
 }

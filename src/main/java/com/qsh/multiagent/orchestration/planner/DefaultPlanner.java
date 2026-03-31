@@ -36,7 +36,7 @@ public class DefaultPlanner implements Planner{
     public Plan createPlan(Task task) {
         String skillContent = skillLoader.loadSkill(PLANNER_SKILL_PATH);
         String prompt = plannerPromptBuilder.buildUserPrompt(task, skillContent);
-        PlannerPlanOutput output = plannerAiService.createPlan(task.getId(), prompt);
+        PlannerPlanOutput output = plannerAiService.createPlan(task.getConversationId(), prompt);
 
         Plan plan = new Plan();
         plan.setId("plan-" + task.getId() + "-" + task.getCurrentRound());

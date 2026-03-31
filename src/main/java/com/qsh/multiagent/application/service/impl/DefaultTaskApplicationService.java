@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Deprecated
 @Service
 public class DefaultTaskApplicationService implements TaskApplicationService {
 

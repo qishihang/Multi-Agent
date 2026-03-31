@@ -15,6 +15,8 @@ public class Task {
     private Integer maxRounds;
     private String currentPlanId;
     private String finalSummary;
+    private String conversationId;
+    private String workspacePath;
 
     public boolean canContinue(){
         return currentRound != null && maxRounds != null && currentRound < maxRounds;

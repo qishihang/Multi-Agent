@@ -1,16 +1,15 @@
 package com.qsh.multiagent.orchestration.dispatcher;
 
 import com.qsh.multiagent.agent.coder.DefaultCoderAgent;
-import com.qsh.multiagent.agent.coder.MockCoderAgent;
 import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
 import com.qsh.multiagent.agent.reviewer.DefaultReviewerAgent;
-import com.qsh.multiagent.agent.reviewer.MockReviewerAgent;
 import com.qsh.multiagent.agent.tester.build.MockBuildAgent;
 import com.qsh.multiagent.agent.tester.lint.MockLintAgent;
 import com.qsh.multiagent.agent.tester.unit.MockUnitTestAgent;
 import com.qsh.multiagent.domain.plan.Plan;
+import com.qsh.multiagent.domain.report.model.CoderReport;
 import com.qsh.multiagent.domain.task.Task;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -38,14 +37,16 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getObjective(),
                 "Mock coding input",
                 task,
-                plan
+                plan,
+                null
         );
         return coderAgent.execute(agentTask);
     }
 
     @Override
-    public List<AgentResult<?>> dispatchToReviewAndTest(Task task, Plan plan){
+    public List<AgentResult<?>> dispatchToReviewAndTest(Task task, Plan plan, AgentResult<?> coderResult){
         List<AgentResult<?>> results = new ArrayList<>();
+        CoderReport coderReport = extractCoderReport(coderResult);
 
         AgentTask reviewerTask = new AgentTask(
                 task.getId(),
@@ -55,7 +56,8 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getObjective(),
                 "Mock review input",
                 task,
-                plan
+                plan,
+                coderReport
         );
 
         AgentTask buildTask = new AgentTask(
@@ -66,7 +68,8 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getObjective(),
                 "Mock build input",
                 task,
-                plan
+                plan,
+                coderReport
         );
 
         AgentTask unitTask = new AgentTask(
@@ -77,7 +80,8 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getObjective(),
                 "Mock unit test input",
                 task,
-                plan
+                plan,
+                coderReport
         );
 
         AgentTask lintTask = new AgentTask(
@@ -88,7 +92,8 @@ public class LocalDispatcher implements Dispatcher{
                 plan.getObjective(),
                 "Mock lint input",
                 task,
-                plan
+                plan,
+                coderReport
         );
 
         results.add(reviewerAgent.execute(reviewerTask));
@@ -97,5 +102,12 @@ public class LocalDispatcher implements Dispatcher{
         results.add(lintAgent.execute(lintTask));
 
         return results;
+    }
+
+    private CoderReport extractCoderReport(AgentResult<?> coderResult) {
+        if (coderResult == null || !(coderResult.getData() instanceof CoderReport report)) {
+            return null;
+        }
+        return report;
     }
 }

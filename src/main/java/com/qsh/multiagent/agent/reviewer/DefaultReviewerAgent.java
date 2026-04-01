@@ -5,6 +5,7 @@ import com.qsh.multiagent.agent.common.AgentResult;
 import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
 import com.qsh.multiagent.domain.plan.Plan;
+import com.qsh.multiagent.domain.report.model.CoderReport;
 import com.qsh.multiagent.domain.report.model.ReviewReport;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.infrastructure.llm.prompt.ReviewerPromptBuilder;
@@ -41,9 +42,10 @@ public class DefaultReviewerAgent implements Agent {
     public AgentResult<ReviewReport> execute(AgentTask task) {
         Task taskContext = task.getTask();
         Plan planContext = task.getPlan();
+        CoderReport coderReport = task.getCoderReport();
 
         String skillContent = skillLoader.loadSkill(REVIEWER_SKILL_PATH);
-        String prompt = reviewerPromptBuilder.buildUserPrompt(taskContext, planContext, skillContent);
+        String prompt = reviewerPromptBuilder.buildUserPrompt(taskContext, planContext, coderReport, skillContent);
         ReviewerAnalysisOutput output = reviewerAiService.review(prompt);
 
         // 利用模型输出对象构造领域对象

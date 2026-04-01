@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface Dispatcher {
     AgentResult<?> dispatchToCoder(Task task, Plan plan);
-    List<AgentResult<?>> dispatchToReviewAndTest(Task task, Plan plan);
+    List<AgentResult<?>> dispatchToReviewAndTest(Task task, Plan plan, AgentResult<?> coderResult);
 }

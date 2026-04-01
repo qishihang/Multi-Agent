@@ -35,7 +35,6 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.taskId").isNotEmpty())
                 .andExpect(jsonPath("$.goal").value("Create task through REST API"))
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
-                .andExpect(jsonPath("$.currentPlanId").isNotEmpty())
                 .andExpect(jsonPath("$.finalSummary").isNotEmpty());
     }
 }

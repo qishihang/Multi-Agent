@@ -32,8 +32,8 @@ public class WorkspaceTools {
             name = "listWorkspaceFiles",
             value = "列出当前会话工作空间中的文件和目录，返回相对路径列表"
     )
-    public String listFiles(@ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+    public String listFiles(@ToolMemoryId String memoryId) {
+        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
         Path root = workspaceManager.getWorkspaceRoot(conversation);
         var sandboxContext = sandboxPolicy.buildContext(conversation, root);
         sandboxPolicy.validateAccessPath(sandboxContext, root);
@@ -52,7 +52,7 @@ public class WorkspaceTools {
 
             return entries.stream().collect(Collectors.joining("\n"));
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to list files for conversation: " + conversationId, e);
+            throw new IllegalStateException("Failed to list files for conversation: " + conversation.getId(), e);
         }
     }
 
@@ -61,8 +61,8 @@ public class WorkspaceTools {
             value = "读取当前会话工作空间中的指定文件内容，参数必须是相对路径"
     )
     public String readFile(@P("相对于工作空间根目录的文件路径") String relativePath,
-                           @ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+                           @ToolMemoryId String memoryId) {
+        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
         Path root = workspaceManager.getWorkspaceRoot(conversation);
         Path target = root.resolve(relativePath).normalize();
         workspaceManager.ensureInsideWorkspace(root, target);
@@ -85,8 +85,8 @@ public class WorkspaceTools {
             value = "在当前会话工作空间中搜索包含指定关键词的文件，返回相对路径列表"
     )
     public String searchCode(@P("要搜索的关键词") String keyword,
-                             @ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+                             @ToolMemoryId String memoryId) {
+        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
         Path root = workspaceManager.getWorkspaceRoot(conversation);
         var sandboxContext = sandboxPolicy.buildContext(conversation, root);
         sandboxPolicy.validateAccessPath(sandboxContext, root);

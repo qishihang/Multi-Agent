@@ -1,19 +1,19 @@
 package com.qsh.multiagent.infrastructure.llm.prompt;
 
-import com.qsh.multiagent.domain.plan.Plan;
+import com.qsh.multiagent.agent.common.AgentTask;
+import com.qsh.multiagent.domain.artifact.CodeArtifact;
+import com.qsh.multiagent.domain.artifact.PlanArtifact;
 import com.qsh.multiagent.domain.plan.PlanStep;
-import com.qsh.multiagent.domain.report.model.CoderReport;
-import com.qsh.multiagent.domain.task.Task;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewerPromptBuilder {
 
-    public String buildUserPrompt(Task task, Plan plan, CoderReport coderReport, String skillContent) {
+    public String buildUserPrompt(AgentTask task, PlanArtifact planArtifact, CodeArtifact codeArtifact, String skillContent) {
 
         StringBuilder stepBuilder = new StringBuilder();
-        if (plan.getSteps() != null) {
-            for (PlanStep step : plan.getSteps()) {
+        if (planArtifact.getSteps() != null) {
+            for (PlanStep step : planArtifact.getSteps()) {
                 stepBuilder.append("- stepNo: ").append(step.getStepNo()).append("\n")
                         .append("  title: ").append(step.getTitle()).append("\n")
                         .append("  description: ").append(step.getDescription()).append("\n")
@@ -21,12 +21,12 @@ public class ReviewerPromptBuilder {
             }
         }
 
-        String coderSummary = coderReport != null ? safe(coderReport.getChangeSummary()) : "当前轮暂无编码结果摘要。";
-        String changedFiles = coderReport != null && coderReport.getChangedFiles() != null
-                ? String.join("\n", coderReport.getChangedFiles())
+        String coderSummary = codeArtifact != null ? safe(codeArtifact.getChangeSummary()) : "当前轮暂无编码结果摘要。";
+        String changedFiles = codeArtifact != null && codeArtifact.getChangedFiles() != null
+                ? String.join("\n", codeArtifact.getChangedFiles())
                 : "当前轮暂无文件变更信息。";
-        String codeDraft = coderReport != null ? safe(coderReport.getCodeDraft()) : "当前轮暂无代码草案。";
-        String coderRisks = coderReport != null ? safe(coderReport.getRisks()) : "当前轮暂无风险说明。";
+        String codeDraft = codeArtifact != null ? safe(codeArtifact.getCodeDraft()) : "当前轮暂无代码草案。";
+        String coderRisks = codeArtifact != null ? safe(codeArtifact.getRisks()) : "当前轮暂无风险说明。";
 
         return """
                 请你根据以下技能说明、当前轮次计划上下文和编码结果上下文，输出结构化审查结果。
@@ -73,12 +73,12 @@ public class ReviewerPromptBuilder {
                 并输出结构化审查结果。
                 """.formatted(
                 skillContent,
-                task.getId(),
+                task.getTaskId(),
                 task.getConversationId(),
-                task.getCurrentRound(),
-                task.getGoal(),
-                plan.getObjective(),
-                plan.getDoneCriteria(),
+                task.getRound(),
+                task.getTaskGoal(),
+                planArtifact.getObjective(),
+                planArtifact.getDoneCriteria(),
                 stepBuilder,
                 coderSummary,
                 changedFiles,

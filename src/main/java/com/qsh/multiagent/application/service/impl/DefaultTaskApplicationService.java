@@ -47,7 +47,7 @@ public class DefaultTaskApplicationService implements TaskApplicationService {
                 task.getStatus(),
                 task.getCurrentRound(),
                 task.getMaxRounds(),
-                task.getCurrentPlanId(),
+                null,
                 task.getFinalSummary()
         );
     }

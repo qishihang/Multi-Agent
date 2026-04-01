@@ -36,8 +36,8 @@ public class TestTools {
             name = "detectProjectType",
             value = "检测当前工作空间的项目类型、构建工具和推荐的验证策略"
     )
-    public String detectProjectType(@ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+    public String detectProjectType(@ToolMemoryId String memoryId) {
+        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
         List<String> filePaths = workspaceManager.listFiles(conversation).stream()
                 .map(entry -> entry.getRelativePath())
                 .toList();
@@ -79,29 +79,12 @@ public class TestTools {
     }
 
     @Tool(
-            name = "writeWorkspaceFile",
-            value = "向当前工作空间写入或覆盖文件，参数必须是相对路径"
-    )
-    public String writeWorkspaceFile(@P("相对于工作空间根目录的文件路径") String relativePath,
-                                     @P("要写入的文件内容") String content,
-                                     @ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
-
-        var workspaceRoot = workspaceManager.getWorkspaceRoot(conversation);
-        var sandboxContext = sandboxPolicy.buildContext(conversation, workspaceRoot);
-        var target = workspaceRoot.resolve(relativePath).normalize();
-        sandboxPolicy.validateWritePath(sandboxContext, target);
-        workspaceManager.writeTextFile(conversation, relativePath, content);
-        return "文件已写入: " + relativePath;
-    }
-
-    @Tool(
             name = "runVerificationCommand",
             value = "在当前工作空间中执行验证命令，例如编译或测试命令，并返回执行结果摘要"
     )
     public String runVerificationCommand(@P("要执行的命令，使用空格分隔，例如 mvn -q test") String command,
-                                         @ToolMemoryId String conversationId) {
-        Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+                                         @ToolMemoryId String memoryId) {
+        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
         List<String> commandParts = Arrays.stream(command.trim().split("\\s+"))
                 .filter(part -> !part.isBlank())
                 .toList();

@@ -30,7 +30,6 @@ public class WorkflowSpringBootTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(TaskStatus.COMPLETED, result.getStatus());
-        Assertions.assertNotNull(result.getCurrentPlanId());
         Assertions.assertNotNull(result.getFinalSummary());
     }
 
@@ -47,7 +46,6 @@ public class WorkflowSpringBootTest {
         Assertions.assertNotNull(response);
         Assertions.assertNotNull(response.getTaskId());
         Assertions.assertEquals(TaskStatus.COMPLETED, response.getStatus());
-        Assertions.assertNotNull(response.getCurrentPlanId());
         Assertions.assertNotNull(response.getFinalSummary());
     }
 }

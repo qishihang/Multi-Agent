@@ -23,7 +23,6 @@ public class DefaultConversationTaskApplicationService implements ConversationTa
         Task task = new Task();
         task.setId(UUID.randomUUID().toString());
         task.setConversationId(conversation.getId());
-        task.setWorkspacePath(conversation.getWorkspacePath());
         task.setGoal(goal);
         task.setStatus(TaskStatus.CREATED);
         task.setCurrentRound(null);

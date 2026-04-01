@@ -25,15 +25,13 @@ public class ConversationTaskApplicationServiceTest {
 
         Task task = conversationTaskApplicationService.createAndRunTask(
                 conversation,
-                "请为一个登录功能生成当前轮计划与编码结果",
+                "请为一个登录功能生成当前轮计划与编码结果，使用java",
                 3
         );
 
         Assertions.assertNotNull(task);
         Assertions.assertNotNull(task.getId());
         Assertions.assertEquals(conversation.getId(), task.getConversationId());
-        Assertions.assertEquals(conversation.getWorkspacePath(), task.getWorkspacePath());
-        Assertions.assertNotNull(task.getCurrentPlanId());
         Assertions.assertNotEquals(TaskStatus.CREATED, task.getStatus());
     }
 }

@@ -6,5 +6,6 @@ public record CoderGenerationOutput(Boolean passed,
                                     String changeSummary,
                                     List<String> changedFiles,
                                     String codeDraft,
-                                    String risks) {
+                                    String risks,
+                                    Boolean filesWritten) {
 }

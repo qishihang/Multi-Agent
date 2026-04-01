@@ -116,6 +116,23 @@ public class WorkspaceManager {
         return conversation;
     }
 
+    public Conversation getConversationByMemoryIdOrThrow(String memoryId) {
+        return getConversationOrThrow(extractConversationId(memoryId));
+    }
+
+    public String extractConversationId(String memoryId) {
+        if (memoryId == null || memoryId.isBlank()) {
+            throw new IllegalArgumentException("MemoryId must not be blank");
+        }
+
+        int separatorIndex = memoryId.indexOf("::");
+        if (separatorIndex < 0) {
+            return memoryId;
+        }
+
+        return memoryId.substring(0, separatorIndex);
+    }
+
     public Path getWorkspaceRoot(Conversation conversation) {
         String workspacePath = conversation.getWorkspacePath();
         if (workspacePath == null || workspacePath.isBlank()) {

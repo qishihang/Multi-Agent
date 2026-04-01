@@ -13,12 +13,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 @Component
 public class WorkspaceManager {
 
     private static final String BASE_WORKSPACE_DIR = "runtime-workspaces";
+    private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
 
     public WorkspaceContext createWorkspaceForConversation(Conversation conversation) {
         try {
@@ -30,6 +33,7 @@ public class WorkspaceManager {
 
             String rootPath = conversationDir.toAbsolutePath().toString();
             conversation.setWorkspacePath(rootPath);
+            conversations.put(conversation.getId(), conversation);
 
             return new WorkspaceContext(
                     conversation.getId(),
@@ -104,7 +108,15 @@ public class WorkspaceManager {
         }
     }
 
-    private Path getWorkspaceRoot(Conversation conversation) {
+    public Conversation getConversationOrThrow(String conversationId) {
+        Conversation conversation = conversations.get(conversationId);
+        if (conversation == null) {
+            throw new IllegalArgumentException("Conversation not found: " + conversationId);
+        }
+        return conversation;
+    }
+
+    public Path getWorkspaceRoot(Conversation conversation) {
         String workspacePath = conversation.getWorkspacePath();
         if (workspacePath == null || workspacePath.isBlank()) {
             throw new IllegalStateException("Conversation workspacePath is empty");
@@ -118,7 +130,7 @@ public class WorkspaceManager {
         return root;
     }
 
-    private void ensureInsideWorkspace(Path root, Path target) {
+    public void ensureInsideWorkspace(Path root, Path target) {
         if (!target.startsWith(root)) {
             throw new IllegalArgumentException("Target path escapes workspace boundary");
         }

@@ -21,7 +21,10 @@ public class CoderPromptBuilder {
         }
 
         return """
-                请你根据以下技能说明、任务上下文、计划上下文和工具上下文，输出结构化编码结果。
+                请你根据以下技能说明、任务上下文和计划上下文，输出结构化编码结果。
+
+                如果你需要查看工作空间中的真实文件、搜索代码或读取文件内容，你可以按需调用可用工具。
+                不要臆造文件内容，缺少上下文时优先使用工具。
 
                 ====================
                 【Skill】
@@ -32,6 +35,7 @@ public class CoderPromptBuilder {
                 【Task Context】
                 ====================
                 taskId: %s
+                conversationId: %s
                 currentRound: %s
                 taskGoal: %s
 
@@ -51,6 +55,7 @@ public class CoderPromptBuilder {
                 """.formatted(
                 skillContent,
                 task.getId(),
+                task.getConversationId(),
                 task.getCurrentRound(),
                 task.getGoal(),
                 plan.getObjective(),

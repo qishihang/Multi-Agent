@@ -9,13 +9,8 @@ import com.qsh.multiagent.infrastructure.llm.prompt.CoderPromptBuilder;
 import com.qsh.multiagent.infrastructure.llm.service.CoderAiService;
 import com.qsh.multiagent.infrastructure.llm.service.CoderGenerationOutput;
 import com.qsh.multiagent.infrastructure.skill.registry.SkillLoader;
-import com.qsh.multiagent.infrastructure.tool.definition.AgentTool;
-import com.qsh.multiagent.infrastructure.tool.executor.ToolExecutionResult;
-import com.qsh.multiagent.infrastructure.tool.registry.ToolRegistry;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @Primary
@@ -50,7 +45,10 @@ public class DefaultCoderAgent implements Agent {
                 skillContent
         );
 
-        CoderGenerationOutput output = coderAiService.generate(prompt);
+        CoderGenerationOutput output = coderAiService.generate(
+                task.getTask().getConversationId(),
+                prompt
+        );
 
         CoderReport report = new CoderReport(
                 Boolean.TRUE.equals(output.passed()),

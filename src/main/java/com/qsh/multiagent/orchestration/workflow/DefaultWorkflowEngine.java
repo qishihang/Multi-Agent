@@ -46,9 +46,9 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
                 task.setFinalSummary(coderResult.getErrorMessage());
                 return task;
             }
-            // 设置状态并测试
+            // 设置状态并进入验证阶段
             task.setStatus(TaskStatus.REVIEWING);
-            List<AgentResult<?>> verifyResults = dispatcher.dispatchToReviewAndTest(task, plan, coderResult);
+            List<AgentResult<?>> verifyResults = dispatcher.dispatchToVerification(task, plan, coderResult);
             // 汇总
             task.setStatus(TaskStatus.AGGREGATING);
             AggregatedResult aggregatedResult = aggregator.aggregate(verifyResults);

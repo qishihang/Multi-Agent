@@ -40,17 +40,16 @@ public class SimpleAggregator implements Aggregator{
                     .append(": ")
                     .append(result.getSummary())
                     .append("; ");
-
-            if(allPassed){
-                aggregatedResult.setSuggestion("Finish current task.");
-            }else{
-                aggregatedResult.setSuggestion("Continue to next round and fix issues.");
-            }
         }
 
         aggregatedResult.setAllPassed(allPassed);
         aggregatedResult.setHasBlockingIssues(hasBlockingIssues);
         aggregatedResult.setSummary(summaryBuilder.toString());
+        if(allPassed){
+            aggregatedResult.setSuggestion("Finish current task.");
+        }else{
+            aggregatedResult.setSuggestion("Continue to next round and fix issues.");
+        }
 
         return aggregatedResult;
     }

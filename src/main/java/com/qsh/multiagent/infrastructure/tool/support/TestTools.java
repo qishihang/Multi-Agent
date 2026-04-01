@@ -3,6 +3,7 @@ package com.qsh.multiagent.infrastructure.tool.support;
 import com.qsh.multiagent.domain.conversation.Conversation;
 import com.qsh.multiagent.infrastructure.executor.WorkspaceCommandExecutor;
 import com.qsh.multiagent.infrastructure.executor.model.CommandExecutionResult;
+import com.qsh.multiagent.infrastructure.sandbox.policy.SandboxPolicy;
 import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -20,11 +21,15 @@ public class TestTools {
 
     private final WorkspaceManager workspaceManager;
     private final WorkspaceCommandExecutor workspaceCommandExecutor;
+    private final SandboxPolicy sandboxPolicy;
+
 
     public TestTools(WorkspaceManager workspaceManager,
-                     WorkspaceCommandExecutor workspaceCommandExecutor) {
+                     WorkspaceCommandExecutor workspaceCommandExecutor,
+                     SandboxPolicy sandboxPolicy) {
         this.workspaceManager = workspaceManager;
         this.workspaceCommandExecutor = workspaceCommandExecutor;
+        this.sandboxPolicy = sandboxPolicy;
     }
 
     @Tool(
@@ -81,6 +86,11 @@ public class TestTools {
                                      @P("要写入的文件内容") String content,
                                      @ToolMemoryId String conversationId) {
         Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
+
+        var workspaceRoot = workspaceManager.getWorkspaceRoot(conversation);
+        var sandboxContext = sandboxPolicy.buildContext(conversation, workspaceRoot);
+        var target = workspaceRoot.resolve(relativePath).normalize();
+        sandboxPolicy.validateWritePath(sandboxContext, target);
         workspaceManager.writeTextFile(conversation, relativePath, content);
         return "文件已写入: " + relativePath;
     }
@@ -96,9 +106,9 @@ public class TestTools {
                 .filter(part -> !part.isBlank())
                 .toList();
 
-        validateCommand(commandParts);
-
-        CommandExecutionResult result = workspaceCommandExecutor.execute(conversation, commandParts);
+        var workspaceRoot = workspaceManager.getWorkspaceRoot(conversation);
+        var sandboxContext = sandboxPolicy.buildContext(conversation, workspaceRoot);
+        CommandExecutionResult result = workspaceCommandExecutor.execute(sandboxContext, commandParts);
         return """
                 success: %s
                 exitCode: %s
@@ -113,22 +123,6 @@ public class TestTools {
                 truncate(result.getStdout(), 8000),
                 truncate(result.getStderr(), 8000)
         );
-    }
-
-    private void validateCommand(List<String> commandParts) {
-        if (commandParts.isEmpty()) {
-            throw new IllegalArgumentException("Command must not be empty");
-        }
-
-        String executable = commandParts.get(0);
-        List<String> allowedExecutables = List.of(
-                "mvn", "./mvnw", "gradle", "./gradlew", "npm", "pnpm", "yarn",
-                "pytest", "python", "python3", "go", "cargo"
-        );
-
-        if (!allowedExecutables.contains(executable)) {
-            throw new IllegalArgumentException("Executable is not allowed: " + executable);
-        }
     }
 
     private String truncate(String content, int maxLength) {

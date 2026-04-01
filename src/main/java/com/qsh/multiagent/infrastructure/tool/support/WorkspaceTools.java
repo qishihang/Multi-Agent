@@ -1,6 +1,7 @@
 package com.qsh.multiagent.infrastructure.tool.support;
 
 import com.qsh.multiagent.domain.conversation.Conversation;
+import com.qsh.multiagent.infrastructure.sandbox.policy.SandboxPolicy;
 import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -19,9 +20,12 @@ import java.util.stream.Stream;
 public class WorkspaceTools {
 
     private final WorkspaceManager workspaceManager;
+    private final SandboxPolicy sandboxPolicy;
 
-    public WorkspaceTools(WorkspaceManager workspaceManager) {
+    public WorkspaceTools(WorkspaceManager workspaceManager,
+                          SandboxPolicy sandboxPolicy) {
         this.workspaceManager = workspaceManager;
+        this.sandboxPolicy = sandboxPolicy;
     }
 
     @Tool(
@@ -31,6 +35,8 @@ public class WorkspaceTools {
     public String listFiles(@ToolMemoryId String conversationId) {
         Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
         Path root = workspaceManager.getWorkspaceRoot(conversation);
+        var sandboxContext = sandboxPolicy.buildContext(conversation, root);
+        sandboxPolicy.validateAccessPath(sandboxContext, root);
 
         try (Stream<Path> stream = Files.walk(root)) {
             List<String> entries = stream
@@ -60,6 +66,8 @@ public class WorkspaceTools {
         Path root = workspaceManager.getWorkspaceRoot(conversation);
         Path target = root.resolve(relativePath).normalize();
         workspaceManager.ensureInsideWorkspace(root, target);
+        var sandboxContext = sandboxPolicy.buildContext(conversation, root);
+        sandboxPolicy.validateAccessPath(sandboxContext, target);
 
         try {
             if (!Files.exists(target) || Files.isDirectory(target)) {
@@ -80,6 +88,8 @@ public class WorkspaceTools {
                              @ToolMemoryId String conversationId) {
         Conversation conversation = workspaceManager.getConversationOrThrow(conversationId);
         Path root = workspaceManager.getWorkspaceRoot(conversation);
+        var sandboxContext = sandboxPolicy.buildContext(conversation, root);
+        sandboxPolicy.validateAccessPath(sandboxContext, root);
 
         try (Stream<Path> stream = Files.walk(root)) {
             List<String> matches = stream

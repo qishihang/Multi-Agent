@@ -12,6 +12,7 @@ import java.util.List;
 public class SandboxContext {
 
     private String conversationId;
+    private String projectId;
     private String workspaceRoot;
     private List<String> allowedWriteRoots;
     private List<String> allowedCommands;

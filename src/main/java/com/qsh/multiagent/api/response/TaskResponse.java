@@ -15,6 +15,5 @@ public class TaskResponse { // 单独定义Reponse，不能把Task暴露给api�
     private TaskStatus status;
     private Integer currentRound;
     private Integer maxRounds;
-    private String currentPlanId;
     private String finalSummary;
 }

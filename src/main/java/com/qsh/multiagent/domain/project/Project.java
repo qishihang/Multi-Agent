@@ -1,4 +1,4 @@
-package com.qsh.multiagent.domain.conversation;
+package com.qsh.multiagent.domain.project;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Conversation {
+public class Project {
 
     private String id;
-    private ConversationStatus status;
-    private String projectId;
+    private ProjectStatus status;
+    private String workspacePath;
 }

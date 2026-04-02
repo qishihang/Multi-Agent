@@ -4,5 +4,7 @@ import com.qsh.multiagent.domain.conversation.Conversation;
 
 public interface ConversationApplicationService {
 
-    Conversation createConversation();
+    Conversation createConversation(String projectId);
+
+    Conversation getConversation(String conversationId);
 }

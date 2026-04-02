@@ -2,7 +2,9 @@ package com.qsh.multiagent.orchestration;
 
 import com.qsh.multiagent.application.service.ConversationApplicationService;
 import com.qsh.multiagent.application.service.ConversationTaskApplicationService;
+import com.qsh.multiagent.application.service.ProjectApplicationService;
 import com.qsh.multiagent.domain.conversation.Conversation;
+import com.qsh.multiagent.domain.project.Project;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.task.TaskStatus;
 import org.junit.jupiter.api.Assertions;
@@ -29,12 +31,16 @@ class FullWorkflowLlmIntegrationTest {
     @Autowired
     private ConversationTaskApplicationService conversationTaskApplicationService;
 
+    @Autowired
+    private ProjectApplicationService projectApplicationService;
+
     @Test
     void should_run_full_llm_workflow_from_conversation_entry() {
-        Conversation conversation = conversationApplicationService.createConversation();
+        Project project = projectApplicationService.createProject();
+        Conversation conversation = conversationApplicationService.createConversation(project.getId());
 
         Task task = conversationTaskApplicationService.createAndRunTask(
-                conversation,
+                conversation.getId(),
                 """
                 请围绕一个 Spring Boot 登录接口完成完整多智能体流程：
                 1. Planner 生成当前轮计划
@@ -47,8 +53,10 @@ class FullWorkflowLlmIntegrationTest {
 
         Assertions.assertNotNull(conversation);
         Assertions.assertNotNull(conversation.getId());
-        Assertions.assertNotNull(conversation.getWorkspacePath());
-        Assertions.assertTrue(Files.exists(Path.of(conversation.getWorkspacePath())));
+        Assertions.assertEquals(project.getId(), conversation.getProjectId());
+        Assertions.assertNotNull(project);
+        Assertions.assertNotNull(project.getWorkspacePath());
+        Assertions.assertTrue(Files.exists(Path.of(project.getWorkspacePath())));
 
         Assertions.assertNotNull(task);
         Assertions.assertNotNull(task.getId());

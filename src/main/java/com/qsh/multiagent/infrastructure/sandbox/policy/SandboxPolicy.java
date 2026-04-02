@@ -15,6 +15,7 @@ public class SandboxPolicy {
 
         return new SandboxContext(
                 conversation.getId(),
+                conversation.getProjectId(),
                 root,
                 List.of(root),
                 List.of(

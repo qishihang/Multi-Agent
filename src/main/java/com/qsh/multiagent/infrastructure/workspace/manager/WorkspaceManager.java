@@ -1,6 +1,7 @@
 package com.qsh.multiagent.infrastructure.workspace.manager;
 
 import com.qsh.multiagent.domain.conversation.Conversation;
+import com.qsh.multiagent.domain.project.Project;
 import com.qsh.multiagent.infrastructure.workspace.model.WorkspaceContext;
 import com.qsh.multiagent.infrastructure.workspace.model.WorkspaceFileEntry;
 import org.springframework.stereotype.Component;
@@ -21,42 +22,54 @@ import java.util.stream.Stream;
 public class WorkspaceManager {
 
     private static final String BASE_WORKSPACE_DIR = "runtime-workspaces";
+    private final Map<String, Project> projects = new ConcurrentHashMap<>();
     private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
 
-    public WorkspaceContext createWorkspaceForConversation(Conversation conversation) {
+    public WorkspaceContext createWorkspaceForProject(Project project) {
         try {
             Path baseDir = Paths.get(BASE_WORKSPACE_DIR);
             Files.createDirectories(baseDir);
 
-            Path conversationDir = baseDir.resolve(conversation.getId());
-            Files.createDirectories(conversationDir);
+            Path projectDir = baseDir.resolve(project.getId());
+            Files.createDirectories(projectDir);
 
-            String rootPath = conversationDir.toAbsolutePath().toString();
-            conversation.setWorkspacePath(rootPath);
-            conversations.put(conversation.getId(), conversation);
+            String rootPath = projectDir.toAbsolutePath().toString();
+            project.setWorkspacePath(rootPath);
+            projects.put(project.getId(), project);
 
             return new WorkspaceContext(
-                    conversation.getId(),
+                    project.getId(),
                     rootPath,
                     true
             );
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to create workspace for conversation: " + conversation.getId(), e);
+            throw new IllegalStateException("Failed to create workspace for project: " + project.getId(), e);
         }
     }
 
-    public WorkspaceContext buildContext(Conversation conversation) {
-        String workspacePath = conversation.getWorkspacePath();
+    public void registerConversation(Conversation conversation) {
+        if (conversation == null || conversation.getId() == null || conversation.getId().isBlank()) {
+            throw new IllegalArgumentException("Conversation id must not be blank");
+        }
+        if (conversation.getProjectId() == null || conversation.getProjectId().isBlank()) {
+            throw new IllegalArgumentException("Conversation projectId must not be blank");
+        }
+        getProjectOrThrow(conversation.getProjectId());
+        conversations.put(conversation.getId(), conversation);
+    }
+
+    public WorkspaceContext buildContext(Project project) {
+        String workspacePath = project.getWorkspacePath();
 
         if (workspacePath == null || workspacePath.isBlank()) {
-            return new WorkspaceContext(conversation.getId(), null, false);
+            return new WorkspaceContext(project.getId(), null, false);
         }
 
         Path path = Paths.get(workspacePath);
         boolean available = Files.exists(path) && Files.isDirectory(path);
 
         return new WorkspaceContext(
-                conversation.getId(),
+                project.getId(),
                 path.toAbsolutePath().toString(),
                 available
         );
@@ -116,8 +129,25 @@ public class WorkspaceManager {
         return conversation;
     }
 
+    public Project getProjectOrThrow(String projectId) {
+        Project project = projects.get(projectId);
+        if (project == null) {
+            throw new IllegalArgumentException("Project not found: " + projectId);
+        }
+        return project;
+    }
+
+    public Project getProjectForConversationOrThrow(String conversationId) {
+        Conversation conversation = getConversationOrThrow(conversationId);
+        return getProjectOrThrow(conversation.getProjectId());
+    }
+
     public Conversation getConversationByMemoryIdOrThrow(String memoryId) {
         return getConversationOrThrow(extractConversationId(memoryId));
+    }
+
+    public Project getProjectByMemoryIdOrThrow(String memoryId) {
+        return getProjectForConversationOrThrow(extractConversationId(memoryId));
     }
 
     public String extractConversationId(String memoryId) {
@@ -134,14 +164,21 @@ public class WorkspaceManager {
     }
 
     public Path getWorkspaceRoot(Conversation conversation) {
-        String workspacePath = conversation.getWorkspacePath();
+        if (conversation == null) {
+            throw new IllegalArgumentException("Conversation must not be null");
+        }
+        return getWorkspaceRoot(getProjectOrThrow(conversation.getProjectId()));
+    }
+
+    public Path getWorkspaceRoot(Project project) {
+        String workspacePath = project.getWorkspacePath();
         if (workspacePath == null || workspacePath.isBlank()) {
-            throw new IllegalStateException("Conversation workspacePath is empty");
+            throw new IllegalStateException("Project workspacePath is empty");
         }
 
         Path root = Paths.get(workspacePath).toAbsolutePath().normalize();
         if (!Files.exists(root) || !Files.isDirectory(root)) {
-            throw new IllegalStateException("Conversation workspace is not available: " + workspacePath);
+            throw new IllegalStateException("Project workspace is not available: " + workspacePath);
         }
 
         return root;

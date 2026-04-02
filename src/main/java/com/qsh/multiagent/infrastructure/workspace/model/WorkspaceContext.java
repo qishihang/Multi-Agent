@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class WorkspaceContext {
 
-    private String conversationId;
+    private String projectId;
     private String rootPath;
     private boolean available;
 }

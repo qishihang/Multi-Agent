@@ -122,7 +122,7 @@ public class LocalDispatcher implements Dispatcher{
         if (task.getConversationId() == null || task.getConversationId().isBlank()) {
             return null;
         }
-        return workspaceManager.getConversationOrThrow(task.getConversationId()).getWorkspacePath();
+        return workspaceManager.getProjectForConversationOrThrow(task.getConversationId()).getWorkspacePath();
     }
 
     private String buildMemoryScope(Task task, AgentType targetAgentType) {

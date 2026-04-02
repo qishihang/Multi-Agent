@@ -2,7 +2,9 @@ package com.qsh.multiagent.conversation;
 
 import com.qsh.multiagent.application.service.ConversationApplicationService;
 import com.qsh.multiagent.application.service.ConversationTaskApplicationService;
+import com.qsh.multiagent.application.service.ProjectApplicationService;
 import com.qsh.multiagent.domain.conversation.Conversation;
+import com.qsh.multiagent.domain.project.Project;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.task.TaskStatus;
 import org.junit.jupiter.api.Assertions;
@@ -19,12 +21,16 @@ public class ConversationTaskApplicationServiceTest {
     @Autowired
     private ConversationTaskApplicationService conversationTaskApplicationService;
 
+    @Autowired
+    private ProjectApplicationService projectApplicationService;
+
     @Test
     void should_create_and_run_task_in_conversation() {
-        Conversation conversation = conversationApplicationService.createConversation();
+        Project project = projectApplicationService.createProject();
+        Conversation conversation = conversationApplicationService.createConversation(project.getId());
 
         Task task = conversationTaskApplicationService.createAndRunTask(
-                conversation,
+                conversation.getId(),
                 "请为一个登录功能生成当前轮计划与编码结果，使用java",
                 3
         );
@@ -32,6 +38,7 @@ public class ConversationTaskApplicationServiceTest {
         Assertions.assertNotNull(task);
         Assertions.assertNotNull(task.getId());
         Assertions.assertEquals(conversation.getId(), task.getConversationId());
+        Assertions.assertEquals(project.getId(), conversation.getProjectId());
         Assertions.assertNotEquals(TaskStatus.CREATED, task.getStatus());
     }
 }

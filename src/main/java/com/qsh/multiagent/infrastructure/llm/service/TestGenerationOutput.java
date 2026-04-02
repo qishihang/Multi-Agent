@@ -5,6 +5,8 @@ import java.util.List;
 public record TestGenerationOutput(
         Boolean passed,
         String projectType,
+        Boolean dependencyPreparationAttempted,
+        Boolean dependencyPreparationPassed,
         Boolean compileRequired,
         Boolean compilePassed,
         Boolean testsGenerated,

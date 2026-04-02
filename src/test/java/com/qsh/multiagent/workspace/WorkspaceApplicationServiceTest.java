@@ -1,4 +1,4 @@
-package com.qsh.multiagent.conversation;
+package com.qsh.multiagent.workspace;
 
 import com.qsh.multiagent.application.service.ConversationApplicationService;
 import com.qsh.multiagent.application.service.ProjectApplicationService;
@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 
 @SpringBootTest
-public class ConversationWorkspaceServiceTest {
+public class WorkspaceApplicationServiceTest {
 
     @Autowired
     private ConversationApplicationService conversationApplicationService;
@@ -26,7 +26,7 @@ public class ConversationWorkspaceServiceTest {
     private ProjectApplicationService projectApplicationService;
 
     @Test
-    void should_add_file_into_conversation_workspace() {
+    void should_add_file_into_project_workspace() {
         Project project = projectApplicationService.createProject();
         Conversation conversation = conversationApplicationService.createConversation(project.getId());
 
@@ -40,10 +40,7 @@ public class ConversationWorkspaceServiceTest {
 
         Assertions.assertNotNull(files);
         Assertions.assertFalse(files.isEmpty());
-
-        boolean found = files.stream()
-                .anyMatch(file -> file.getRelativePath().contains("Demo.java"));
-
+        boolean found = files.stream().anyMatch(file -> file.getRelativePath().contains("Demo.java"));
         Assertions.assertTrue(found);
     }
 }

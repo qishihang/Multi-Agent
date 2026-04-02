@@ -4,7 +4,7 @@ import com.qsh.multiagent.application.service.ConversationApplicationService;
 import com.qsh.multiagent.application.service.ProjectApplicationService;
 import com.qsh.multiagent.domain.conversation.Conversation;
 import com.qsh.multiagent.domain.conversation.ConversationStatus;
-import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
+import com.qsh.multiagent.infrastructure.conversation.ConversationRegistry;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -13,12 +13,12 @@ import java.util.UUID;
 public class DefaultConversationApplicationService implements ConversationApplicationService {
 
     private final ProjectApplicationService projectApplicationService;
-    private final WorkspaceManager workspaceManager;
+    private final ConversationRegistry conversationRegistry;
 
     public DefaultConversationApplicationService(ProjectApplicationService projectApplicationService,
-                                                 WorkspaceManager workspaceManager) {
+                                                 ConversationRegistry conversationRegistry) {
         this.projectApplicationService = projectApplicationService;
-        this.workspaceManager = workspaceManager;
+        this.conversationRegistry = conversationRegistry;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class DefaultConversationApplicationService implements ConversationApplic
         conversation.setId(UUID.randomUUID().toString());
         conversation.setStatus(ConversationStatus.CREATED);
         conversation.setProjectId(projectId);
-        workspaceManager.registerConversation(conversation);
+        conversationRegistry.register(conversation);
         conversation.setStatus(ConversationStatus.ACTIVE);
 
         return conversation;
@@ -37,6 +37,6 @@ public class DefaultConversationApplicationService implements ConversationApplic
 
     @Override
     public Conversation getConversation(String conversationId) {
-        return workspaceManager.getConversationOrThrow(conversationId);
+        return conversationRegistry.getConversationOrThrow(conversationId);
     }
 }

@@ -126,6 +126,9 @@ public class SimpleAggregator implements Aggregator{
         if (failedCount > 0) {
             aggregateArtifact.addFailedValidation("Tester reported %s failed tests.".formatted(failedCount));
         }
+        if (testArtifact.isDependencyPreparationAttempted() && !testArtifact.isDependencyPreparationPassed()) {
+            aggregateArtifact.addFailedValidation("Dependency preparation did not pass.");
+        }
         if (testArtifact.isCompileRequired() && !testArtifact.isCompilePassed()) {
             aggregateArtifact.addFailedValidation("Compilation did not pass.");
         }

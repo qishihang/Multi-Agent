@@ -13,7 +13,7 @@ import com.qsh.multiagent.domain.context.ExecutionContext;
 import com.qsh.multiagent.domain.context.ToolCapability;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.workflow.WorkflowRun;
-import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
+import com.qsh.multiagent.infrastructure.workspace.resolver.WorkspaceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -28,14 +28,14 @@ public class LocalDispatcher implements Dispatcher{
 
     private final AgentRegistry agentRegistry;
     private final Executor verifierExecutor;
-    private final WorkspaceManager workspaceManager;
+    private final WorkspaceResolver workspaceResolver;
 
     public LocalDispatcher(AgentRegistry agentRegistry,
                            @Qualifier("verifierExecutor") Executor verifierExecutor,
-                           WorkspaceManager workspaceManager) {
+                           WorkspaceResolver workspaceResolver) {
         this.agentRegistry = agentRegistry;
         this.verifierExecutor = verifierExecutor;
-        this.workspaceManager = workspaceManager;
+        this.workspaceResolver = workspaceResolver;
     }
 
     @Override
@@ -122,7 +122,7 @@ public class LocalDispatcher implements Dispatcher{
         if (task.getConversationId() == null || task.getConversationId().isBlank()) {
             return null;
         }
-        return workspaceManager.getProjectForConversationOrThrow(task.getConversationId()).getWorkspacePath();
+        return workspaceResolver.getWorkspaceRoot(task.getConversationId()).toString();
     }
 
     private String buildMemoryScope(Task task, AgentType targetAgentType) {

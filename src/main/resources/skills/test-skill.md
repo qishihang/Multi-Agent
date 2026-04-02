@@ -47,6 +47,8 @@ applicableAgents:
 
 - passed
 - projectType
+- dependencyPreparationAttempted
+- dependencyPreparationPassed
 - compileRequired
 - compilePassed
 - testsGenerated
@@ -67,16 +69,22 @@ applicableAgents:
 5. summary 必须是总结后的结果，而不是原始命令输出照搬
 6. failureAnalysis 应简明指出失败原因或阻塞点
 7. 不要编造不存在的项目结构、测试框架或执行结果
+8. 对于存在依赖管理文件的项目，应优先调用 prepareDependencies，再考虑验证命令
+9. 依赖准备失败时，不应声称验证已可靠通过
+10. 只有在确有必要时才调用 prepareBuildEnvironment
 
 # Tool Policy
 
 你可以按需调用系统提供的工具来：
 
 - 检测项目类型
+- 准备依赖
+- 准备构建环境
 - 浏览工作空间文件
 - 搜索代码
 - 读取文件
 - 写入测试文件
 - 执行验证命令
+- 重置当前会话沙箱
 
 你应优先基于证据进行测试判断。

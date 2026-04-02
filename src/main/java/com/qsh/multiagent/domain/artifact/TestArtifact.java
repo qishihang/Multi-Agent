@@ -16,6 +16,8 @@ public class TestArtifact extends Artifact {
 
     private boolean passed;
     private String projectType;
+    private boolean dependencyPreparationAttempted;
+    private boolean dependencyPreparationPassed;
     private boolean compileRequired;
     private boolean compilePassed;
     private boolean testsGenerated;

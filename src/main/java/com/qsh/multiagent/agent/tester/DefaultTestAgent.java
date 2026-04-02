@@ -73,6 +73,10 @@ public class DefaultTestAgent implements Agent {
                 && !output.failureAnalysis().isBlank()) {
             result.addIssue(output.failureAnalysis());
         }
+        if (Boolean.TRUE.equals(output.dependencyPreparationAttempted())
+                && !Boolean.TRUE.equals(output.dependencyPreparationPassed())) {
+            result.addIssue("Dependency preparation failed.");
+        }
         if (output.testsFailedCount() != null && output.testsFailedCount() > 0) {
             result.addIssue("Failed tests: " + output.testsFailedCount());
         }
@@ -104,6 +108,8 @@ public class DefaultTestAgent implements Agent {
         );
         artifact.setPassed(Boolean.TRUE.equals(output.passed()));
         artifact.setProjectType(output.projectType());
+        artifact.setDependencyPreparationAttempted(Boolean.TRUE.equals(output.dependencyPreparationAttempted()));
+        artifact.setDependencyPreparationPassed(Boolean.TRUE.equals(output.dependencyPreparationPassed()));
         artifact.setCompileRequired(Boolean.TRUE.equals(output.compileRequired()));
         artifact.setCompilePassed(Boolean.TRUE.equals(output.compilePassed()));
         artifact.setTestsGenerated(Boolean.TRUE.equals(output.testsGenerated()));
@@ -136,7 +142,13 @@ public class DefaultTestAgent implements Agent {
     private String buildEvidenceSummary(TestGenerationOutput output) {
         Integer failedCount = output.testsFailedCount() == null ? 0 : output.testsFailedCount();
         Integer passedCount = output.testsPassedCount() == null ? 0 : output.testsPassedCount();
-        return "Test evidence collected with %s passed and %s failed checks.".formatted(passedCount, failedCount);
+        String dependencySummary = Boolean.TRUE.equals(output.dependencyPreparationAttempted())
+                ? (Boolean.TRUE.equals(output.dependencyPreparationPassed())
+                ? "Dependency preparation succeeded."
+                : "Dependency preparation failed.")
+                : "Dependency preparation was not required.";
+        return "%s Test evidence collected with %s passed and %s failed checks."
+                .formatted(dependencySummary, passedCount, failedCount);
     }
 
     private PlanArtifact requirePlanArtifact(AgentTask task) {

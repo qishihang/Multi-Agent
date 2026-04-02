@@ -6,6 +6,7 @@ import com.qsh.multiagent.agent.common.AgentTask;
 import com.qsh.multiagent.agent.common.AgentType;
 import com.qsh.multiagent.domain.artifact.CodeArtifact;
 import com.qsh.multiagent.domain.artifact.PlanArtifact;
+import com.qsh.multiagent.domain.plan.PlanStep;
 import com.qsh.multiagent.infrastructure.llm.prompt.CoderPromptBuilder;
 import com.qsh.multiagent.infrastructure.llm.service.CoderAiService;
 import com.qsh.multiagent.infrastructure.llm.service.CoderGenerationOutput;
@@ -73,6 +74,7 @@ public class DefaultCoderAgent implements Agent {
         if (output.risks() != null && !output.risks().isBlank()) {
             result.addIssue(output.risks());
         }
+        enforceCodeWriteRequirement(planArtifact, codeArtifact, result);
 
         return result;
     }
@@ -129,5 +131,38 @@ public class DefaultCoderAgent implements Agent {
             throw new IllegalStateException("CoderAgent requires PlanArtifact input");
         }
         return artifact;
+    }
+
+    private void enforceCodeWriteRequirement(PlanArtifact planArtifact,
+                                             CodeArtifact codeArtifact,
+                                             AgentResult result) {
+        if (!requiresCodeWrite(planArtifact)) {
+            return;
+        }
+
+        if (!codeArtifact.isFilesWritten()) {
+            String message = "Coding-required plan was not applied to the workspace. Coder must write files before the round can succeed.";
+            result.setSuccess(false);
+            result.setErrorMessage(message);
+            result.addIssue(message);
+            return;
+        }
+
+        if (codeArtifact.getChangedFiles() == null || codeArtifact.getChangedFiles().isEmpty()) {
+            result.addIssue("Coder wrote files but did not report changedFiles.");
+        }
+    }
+
+    private boolean requiresCodeWrite(PlanArtifact planArtifact) {
+        if (planArtifact.getSteps() == null || planArtifact.getSteps().isEmpty()) {
+            return true;
+        }
+
+        for (PlanStep step : planArtifact.getSteps()) {
+            if (step != null && step.isCodingRequired()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -3,7 +3,7 @@ package com.qsh.multiagent.application.service.impl;
 import com.qsh.multiagent.application.service.ConversationTaskApplicationService;
 import com.qsh.multiagent.domain.task.Task;
 import com.qsh.multiagent.domain.task.TaskStatus;
-import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
+import com.qsh.multiagent.infrastructure.conversation.ConversationRegistry;
 import com.qsh.multiagent.orchestration.workflow.WorkflowEngine;
 import org.springframework.stereotype.Service;
 
@@ -13,17 +13,17 @@ import java.util.UUID;
 public class DefaultConversationTaskApplicationService implements ConversationTaskApplicationService {
 
     private final WorkflowEngine workflowEngine;
-    private final WorkspaceManager workspaceManager;
+    private final ConversationRegistry conversationRegistry;
 
     public DefaultConversationTaskApplicationService(WorkflowEngine workflowEngine,
-                                                     WorkspaceManager workspaceManager) {
+                                                     ConversationRegistry conversationRegistry) {
         this.workflowEngine = workflowEngine;
-        this.workspaceManager = workspaceManager;
+        this.conversationRegistry = conversationRegistry;
     }
 
     @Override
     public Task createAndRunTask(String conversationId, String goal, Integer maxRounds) {
-        workspaceManager.getConversationOrThrow(conversationId);
+        conversationRegistry.getConversationOrThrow(conversationId);
 
         Task task = new Task();
         task.setId(UUID.randomUUID().toString());

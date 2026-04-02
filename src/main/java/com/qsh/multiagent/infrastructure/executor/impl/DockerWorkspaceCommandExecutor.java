@@ -3,14 +3,15 @@ package com.qsh.multiagent.infrastructure.executor.impl;
 import com.qsh.multiagent.infrastructure.executor.WorkspaceCommandExecutor;
 import com.qsh.multiagent.infrastructure.executor.model.CommandExecutionResult;
 import com.qsh.multiagent.infrastructure.sandbox.model.SandboxContext;
+import com.qsh.multiagent.infrastructure.sandbox.model.SandboxSession;
 import com.qsh.multiagent.infrastructure.sandbox.policy.SandboxPolicy;
+import com.qsh.multiagent.infrastructure.sandbox.service.ConversationSandboxManager;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -19,12 +20,16 @@ import java.util.stream.Collectors;
 public class DockerWorkspaceCommandExecutor implements WorkspaceCommandExecutor {
 
     private static final long DEFAULT_TIMEOUT_SECONDS = 120;
-    private static final String CONTAINER_WORKSPACE = "/workspace";
+    private static final long PREPARATION_TIMEOUT_SECONDS = 600;
+    private static final long BUILD_TIMEOUT_SECONDS = 300;
 
     private final SandboxPolicy sandboxPolicy;
+    private final ConversationSandboxManager conversationSandboxManager;
 
-    public DockerWorkspaceCommandExecutor(SandboxPolicy sandboxPolicy) {
+    public DockerWorkspaceCommandExecutor(SandboxPolicy sandboxPolicy,
+                                          ConversationSandboxManager conversationSandboxManager) {
         this.sandboxPolicy = sandboxPolicy;
+        this.conversationSandboxManager = conversationSandboxManager;
     }
 
     @Override
@@ -34,20 +39,28 @@ public class DockerWorkspaceCommandExecutor implements WorkspaceCommandExecutor 
         Path workspaceRoot = Path.of(sandboxContext.getWorkspaceRoot()).toAbsolutePath().normalize();
         sandboxPolicy.validateAccessPath(sandboxContext, workspaceRoot);
 
-        List<String> dockerCommand = buildDockerCommand(workspaceRoot, command);
+        SandboxSession sandboxSession;
+        try {
+            sandboxSession = conversationSandboxManager.getOrCreateSession(sandboxContext);
+        } catch (IllegalStateException e) {
+            return new CommandExecutionResult(false, -1, "", e.getMessage());
+        }
+
+        List<String> dockerCommand = buildDockerExecCommand(sandboxSession, command);
         ProcessBuilder processBuilder = new ProcessBuilder(dockerCommand);
+        long timeoutSeconds = resolveTimeoutSeconds(command);
 
         try {
             Process process = processBuilder.start();
 
-            boolean finished = process.waitFor(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 return new CommandExecutionResult(
                         false,
                         -1,
                         "",
-                        "Docker command timed out after " + DEFAULT_TIMEOUT_SECONDS + " seconds"
+                        "Docker command timed out after " + timeoutSeconds + " seconds: " + String.join(" ", command)
                 );
             }
 
@@ -70,39 +83,45 @@ public class DockerWorkspaceCommandExecutor implements WorkspaceCommandExecutor 
                     truncate(stderr, 12000)
             );
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to execute docker command: " + dockerCommand, e);
+            return new CommandExecutionResult(false, -1, "", "Failed to execute docker command: " + e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Docker command execution interrupted: " + dockerCommand, e);
+            return new CommandExecutionResult(false, -1, "", "Docker command execution interrupted");
         }
     }
 
-    private List<String> buildDockerCommand(Path workspaceRoot, List<String> command) {
-        List<String> dockerCommand = new ArrayList<>();
+    private List<String> buildDockerExecCommand(SandboxSession sandboxSession, List<String> command) {
+        List<String> dockerCommand = new java.util.ArrayList<>();
         dockerCommand.add("docker");
-        dockerCommand.add("run");
-        dockerCommand.add("--rm");
-        dockerCommand.add("-v");
-        dockerCommand.add(workspaceRoot + ":" + CONTAINER_WORKSPACE);
-        dockerCommand.add("-w");
-        dockerCommand.add(CONTAINER_WORKSPACE);
-        dockerCommand.add(resolveImage(command));
+        dockerCommand.add("exec");
+        dockerCommand.add(sandboxSession.getContainerName());
         dockerCommand.addAll(command);
         return dockerCommand;
     }
 
-    private String resolveImage(List<String> command) {
-        String executable = command.get(0);
+    private long resolveTimeoutSeconds(List<String> command) {
+        String normalizedCommand = String.join(" ", command);
 
-        return switch (executable) {
-            case "mvn", "./mvnw" -> "maven:3.9.9-eclipse-temurin-17";
-            case "gradle", "./gradlew" -> "gradle:8.10.2-jdk17";
-            case "npm", "pnpm", "yarn" -> "node:22";
-            case "pytest", "python", "python3" -> "python:3.11";
-            case "go" -> "golang:1.24";
-            case "cargo" -> "rust:1.86";
-            default -> throw new IllegalArgumentException("No docker image mapping for executable: " + executable);
-        };
+        if (normalizedCommand.contains("dependency:go-offline")
+                || normalizedCommand.contains("npm install")
+                || normalizedCommand.contains("pip install")
+                || normalizedCommand.contains("go mod download")
+                || normalizedCommand.contains("cargo fetch")
+                || normalizedCommand.contains("gradle dependencies")
+                || normalizedCommand.contains("./gradlew dependencies")) {
+            return PREPARATION_TIMEOUT_SECONDS;
+        }
+
+        if (normalizedCommand.contains("test-compile")
+                || normalizedCommand.contains("testClasses")
+                || normalizedCommand.contains("cargo check")
+                || normalizedCommand.contains("go build ./...")
+                || normalizedCommand.contains("compileall")
+                || normalizedCommand.contains("npm run build")) {
+            return BUILD_TIMEOUT_SECONDS;
+        }
+
+        return DEFAULT_TIMEOUT_SECONDS;
     }
 
     private String truncate(String content, int maxLength) {

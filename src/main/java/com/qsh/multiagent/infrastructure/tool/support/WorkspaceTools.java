@@ -1,8 +1,9 @@
 package com.qsh.multiagent.infrastructure.tool.support;
 
 import com.qsh.multiagent.domain.conversation.Conversation;
+import com.qsh.multiagent.infrastructure.conversation.ConversationRegistry;
 import com.qsh.multiagent.infrastructure.sandbox.policy.SandboxPolicy;
-import com.qsh.multiagent.infrastructure.workspace.manager.WorkspaceManager;
+import com.qsh.multiagent.infrastructure.workspace.resolver.WorkspaceResolver;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -19,12 +20,15 @@ import java.util.stream.Stream;
 @Component
 public class WorkspaceTools {
 
-    private final WorkspaceManager workspaceManager;
+    private final ConversationRegistry conversationRegistry;
+    private final WorkspaceResolver workspaceResolver;
     private final SandboxPolicy sandboxPolicy;
 
-    public WorkspaceTools(WorkspaceManager workspaceManager,
+    public WorkspaceTools(ConversationRegistry conversationRegistry,
+                          WorkspaceResolver workspaceResolver,
                           SandboxPolicy sandboxPolicy) {
-        this.workspaceManager = workspaceManager;
+        this.conversationRegistry = conversationRegistry;
+        this.workspaceResolver = workspaceResolver;
         this.sandboxPolicy = sandboxPolicy;
     }
 
@@ -33,8 +37,8 @@ public class WorkspaceTools {
             value = "列出当前会话工作空间中的文件和目录，返回相对路径列表"
     )
     public String listFiles(@ToolMemoryId String memoryId) {
-        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
-        Path root = workspaceManager.getWorkspaceRoot(conversation);
+        Conversation conversation = conversationRegistry.getConversationByMemoryIdOrThrow(memoryId);
+        Path root = workspaceResolver.getWorkspaceRoot(conversation.getId());
         var sandboxContext = sandboxPolicy.buildContext(conversation, root);
         sandboxPolicy.validateAccessPath(sandboxContext, root);
 
@@ -62,10 +66,10 @@ public class WorkspaceTools {
     )
     public String readFile(@P("相对于工作空间根目录的文件路径") String relativePath,
                            @ToolMemoryId String memoryId) {
-        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
-        Path root = workspaceManager.getWorkspaceRoot(conversation);
+        Conversation conversation = conversationRegistry.getConversationByMemoryIdOrThrow(memoryId);
+        Path root = workspaceResolver.getWorkspaceRoot(conversation.getId());
         Path target = root.resolve(relativePath).normalize();
-        workspaceManager.ensureInsideWorkspace(root, target);
+        workspaceResolver.ensureInsideWorkspace(root, target);
         var sandboxContext = sandboxPolicy.buildContext(conversation, root);
         sandboxPolicy.validateAccessPath(sandboxContext, target);
 
@@ -86,8 +90,8 @@ public class WorkspaceTools {
     )
     public String searchCode(@P("要搜索的关键词") String keyword,
                              @ToolMemoryId String memoryId) {
-        Conversation conversation = workspaceManager.getConversationByMemoryIdOrThrow(memoryId);
-        Path root = workspaceManager.getWorkspaceRoot(conversation);
+        Conversation conversation = conversationRegistry.getConversationByMemoryIdOrThrow(memoryId);
+        Path root = workspaceResolver.getWorkspaceRoot(conversation.getId());
         var sandboxContext = sandboxPolicy.buildContext(conversation, root);
         sandboxPolicy.validateAccessPath(sandboxContext, root);
 
